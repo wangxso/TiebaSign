@@ -7,7 +7,8 @@ import copy
 import logging
 import random
 import argparse
-
+import yaml
+import json
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,6 @@ logger = logging.getLogger(__name__)
 LIKIE_URL = "http://c.tieba.baidu.com/c/f/forum/like"
 TBS_URL = "http://tieba.baidu.com/dc/common/tbs"
 SIGN_URL = "http://c.tieba.baidu.com/c/c/forum/sign"
-
 HEADERS = {
     'Host': 'tieba.baidu.com',
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
@@ -43,7 +43,6 @@ SIGN_KEY = 'tiebaclient!!!'
 UTF8 = "utf-8"
 SIGN = "sign"
 KW = "kw"
-
 s = requests.Session()
 
 
@@ -85,6 +84,7 @@ def get_favorite(bduss):
         res = s.post(url=LIKIE_URL, data=data, timeout=5).json()
     except Exception as e:
         logger.error("获取关注的贴吧出错" + e)
+        send_message("获取关注的贴吧出错" + e)
         return []
     returnData = res
     if 'forum_list' not in returnData:
@@ -174,14 +174,10 @@ def client_sign(bduss, tbs, fid, kw, idx, count):
     return res
 
 
-def main(filename):
+def main():
     # b = os.environ['BDUSS'].split('#')
     b = []
-    with open(filename, "r") as f:
-         for line in f:
-            s = line.strip()
-            b.append(s)
-         f.close()
+    b.append(BDUSS)
     for n, i in enumerate(b):
         if(len(i) <= 0):
             logger.info("未检测到BDUSS")
@@ -196,18 +192,48 @@ def main(filename):
                 client_sign(i, tbs, j["id"], j["name"],idx,count)
             except TypeError:
                 logger.error("第"+ str(n+1) + "个用户的BDUSS不正确")
+                send_message("第"+ str(n+1) + "个用户的BDUSS不正确")
                 break
         logger.info("第" + str(n+1) + "个用户签到完成")
+        send_message("第" + str(n+1) + "个用户签到完成, 共完成签到" + str(count) + "个贴吧. ")
     logger.info("所有用户签到完成")
 
-def arg_config():
-    parser = argparse.ArgumentParser(description='TieBa Sign Arguments')
-    parser.add_argument('--file', dest='file', type=str, help="the file name of the BDUSS file")
-    args = parser.parse_args()
-    filename = args.file
-    return filename
+def init():
+    global BDUSS
+    global WEBHOOK_URL
+    r = open("./config.yaml", "r")
+    config = yaml.load(r, Loader=yaml.SafeLoader)
+    if 'BDUSS' not in config:
+        logger.error("配置文件中缺少BDUSS")
+        return False
+    if 'feishu' not in config:
+        logger.info("配置文件缺少飞书通知配置")
+    else:
+        WEBHOOK_URL = config['feishu']['webhook']
+    BDUSS = config['BDUSS']
+    logger.info("BDUSS: " + BDUSS)
+    logger.info("WEBGOOK: " + WEBHOOK_URL)
+    r.close()
+    return True
 
+def send_message(msg):
+    payload = json.dumps({
+    "msg_type": "text",
+    "content": {
+        "text": msg
+        }
+    })
+    headers = {
+      'Content-Type': 'application/json'
+    }
+    response = requests.request("POST", WEBHOOK_URL, headers=headers, data=payload)
+    logger.info(response.text)
 
 if __name__ == '__main__':
-    filename = arg_config()
-    main(filename)
+    if init():
+        main()
+    else:
+        logger.error("程序运行出错, 请参考日志")
+        
+    
+        
