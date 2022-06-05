@@ -1,2 +1,3 @@
 # the config file
 config.yaml
+*.log

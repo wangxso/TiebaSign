@@ -9,7 +9,7 @@ import random
 import argparse
 import yaml
 import json
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename="logfile.log", filemode="a+")
 logger = logging.getLogger(__name__)
 
 # API_URL
@@ -161,16 +161,16 @@ def encodeData(data):
 
 def client_sign(bduss, tbs, fid, kw, idx, count):
     # 客户端签到
-    print("【" + kw +"】吧，开始签到("+str(idx+1)+"/"+str(count)+")")
+    logger.info("【" + kw +"】吧，开始签到("+str(idx+1)+"/"+str(count)+")")
     data = copy.copy(SIGN_DATA)
     data.update({BDUSS: bduss, FID: fid, KW: kw, TBS: tbs, TIMESTAMP: str(int(time.time()))})
     data = encodeData(data)
     res = s.post(url=SIGN_URL, data=data, timeout=5).json()
     # print(res)
     if res['error_code'] == '0':
-        print("签到成功，你是第"+res['user_info']['user_sign_rank']+"个签到的")
+        logger.info("签到成功，你是第"+res['user_info']['user_sign_rank']+"个签到的")
     if res['error_code'] == '160002':
-        print(res['error_msg'])
+        logger.error(res['error_msg'])
     return res
 
 
