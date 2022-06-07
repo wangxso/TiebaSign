@@ -22,7 +22,7 @@ TBS_URL = "http://tieba.baidu.com/dc/common/tbs"
 SIGN_URL = "http://c.tieba.baidu.com/c/c/forum/sign"
 HEADERS = {
     'Host': 'tieba.baidu.com',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.33',
 }
 SIGN_DATA = {
     '_client_type': '2',
@@ -49,11 +49,13 @@ SIGN = "sign"
 KW = "kw"
 s = requests.Session()
 
+cookie = 'BIDUPSID=EBED273D21B444D05D33496367AB6B45; PSTM=1650853435; BAIDUID=3251A298C68A82117DAE09A479CEF6BC:FG=1; ZFY=YJbhbYUMwvuBCKgHzCqpF41cryvAWvr6hzfaqhRuN8M:C; BAIDUID_BFESS=901F2BE1F68296AA3BF154319C58CD2A:FG=1; BAIDU_WISE_UID=wapp_1654614483173_679; BDUSS=2d3WlhuSHd-ZHdhN0YtcVdiRXUwTTJBTTZld0lIclJjUFVHMmdoaXAtYmE5c1ppRVFBQUFBJCQAAAAAAAAAAAEAAAC-R~gwb24xedi8xMzMxwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANppn2LaaZ9iM; BDUSS_BFESS=2d3WlhuSHd-ZHdhN0YtcVdiRXUwTTJBTTZld0lIclJjUFVHMmdoaXAtYmE5c1ppRVFBQUFBJCQAAAAAAAAAAAEAAAC-R~gwb24xedi8xMzMxwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANppn2LaaZ9iM; STOKEN=a0f4791c69247ab7f743d161caadb07375f66c4e273a70d8bbb9b54233f67bcf; showCardBeforeSign=1; rpln_guide=1; TIEBAUID=85ff978ce157cb118814098e; IS_NEW_USER=a8f5e3f1a561bb5d2dc64320; Hm_lvt_98b9d8c2fd6608d564bf2ac2ae642948=1654614445,1654615511; st_key_id=17; USER_JUMP=-1; Hm_lpvt_98b9d8c2fd6608d564bf2ac2ae642948=1654615518; 821577662_FRSVideoUploadTip=1; video_bubble821577662=1; ab_sr=1.0.1_M2RiM2U5ZWQwYmY3YmE4Y2NlM2NhZmFkMTQxODQyNTEwOWE1ZDNlMmM4OGIwZTAyMmQwODIwZGMyYTg0NmJkOWNhMDc5NjJmZjBkOWFmZGNlZWFmYTU2ZmI3ODI4NzJkMDExMTBiNTMyZTU0MDg3OThkZjVlNDJkNDQzNTU3OGViNjgwNTA2OGFlNjY5MmY5MDI4ZWJkNjU0OWI1MzU0MmJmYWJkNDEwNDMyOTE0MmU0MTg1NzdiMzUyMDcwMjFm; st_data=837fb51a0705d16cee1f5aea6290d6e47b0bdf5e38ad547c54cf0b7ce32160d97bca3978ed6f6948a771ac1e08131162ba41ff67b39fbd3747c755769d1163ceedd4e602aa3bf828ace8f37ab4dc10545d184ba5a8d1573e07ac320213b24cc5; st_sign=46c26443'
 
 def get_tbs(bduss):
     logger.info("开始获取tbs")
     headers = copy.copy(HEADERS)
-    headers.update({COOKIE: EMPTY_STR.join([BDUSS, EQUAL, bduss])})
+    # headers.update({COOKIE: EMPTY_STR.join([BDUSS, EQUAL, bduss])})
+    headers.update({COOKIE: cookie})
     try:
         tbs = s.get(url=TBS_URL, headers=headers, timeout=5).json()[TBS]
     except Exception as e:
@@ -164,20 +166,25 @@ def encodeData(data):
 
 
 def client_sign(bduss, tbs, fid, kw, idx, count):
+    flag = True
+    error_msgs = []
     # 客户端签到
     logger.info("【" + kw +"】吧，开始签到("+str(idx+1)+"/"+str(count)+")")
+    headers = copy.copy(HEADERS)
+    headers.update({COOKIE: EMPTY_STR.join([BDUSS, EQUAL, bduss])})
     data = copy.copy(SIGN_DATA)
     data.update({BDUSS: bduss, FID: fid, KW: kw, TBS: tbs, TIMESTAMP: str(int(time.time()))})
     data = encodeData(data)
-    res = s.post(url=SIGN_URL, data=data, timeout=5).json()
+    res = s.post(url=SIGN_URL, data=data, timeout=5, headers=headers).json()
     # print(res)
     if res['error_code'] == '0':
         logger.info("签到成功，你是第"+res['user_info']['user_sign_rank']+"个签到的")
     if res['error_code'] != '0':
         logger.error(res['error_msg'])
-        send_message(res['error_msg'])
-        return False
-    return True
+        if res['error_msg'] not in error_msgs:
+            error_msgs.append(res['error_msg'])
+        flag = False
+    return flag
 
 
 def main():
@@ -195,9 +202,7 @@ def main():
         for idx,j in enumerate(favorites):
             time.sleep(random.randint(1,5))
             try:
-                res = client_sign(i, tbs, j["id"], j["name"],idx,count)
-                if not res:
-                    break
+                res = client_sign(i, tbs, j["id"], j["name"],idx,count)    
             except TypeError:
                 logger.error("第"+ str(n+1) + "个用户的BDUSS不正确")
                 send_message("第"+ str(n+1) + "个用户的BDUSS不正确")
