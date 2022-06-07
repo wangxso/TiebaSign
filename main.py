@@ -9,7 +9,11 @@ import random
 import argparse
 import yaml
 import json
+# debug level
+# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# product level
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename="logfile.log", filemode="a+")
+
 logger = logging.getLogger(__name__)
 
 # API_URL
@@ -169,9 +173,11 @@ def client_sign(bduss, tbs, fid, kw, idx, count):
     # print(res)
     if res['error_code'] == '0':
         logger.info("签到成功，你是第"+res['user_info']['user_sign_rank']+"个签到的")
-    if res['error_code'] == '160002':
+    if res['error_code'] != '0':
         logger.error(res['error_msg'])
-    return res
+        send_message(res['error_msg'])
+        return False
+    return True
 
 
 def main():
@@ -189,7 +195,9 @@ def main():
         for idx,j in enumerate(favorites):
             time.sleep(random.randint(1,5))
             try:
-                client_sign(i, tbs, j["id"], j["name"],idx,count)
+                res = client_sign(i, tbs, j["id"], j["name"],idx,count)
+                if not res:
+                    break
             except TypeError:
                 logger.error("第"+ str(n+1) + "个用户的BDUSS不正确")
                 send_message("第"+ str(n+1) + "个用户的BDUSS不正确")
