@@ -182,16 +182,10 @@ def client_sign(bduss, tbs, fid, kw, idx, count):
         logger.info("签到成功，你是第"+res['user_info']['user_sign_rank']+"个签到的")
     if res['error_code'] != '0':
         logger.error(res['error_msg'])
-<<<<<<< HEAD
         if res['error_msg'] not in error_msgs:
             error_msgs.append(res['error_msg'])
         flag = False
     return flag
-=======
-        send_message(res['error_msg'])
-        return False
-    return True
->>>>>>> d28a06224026ee403ba979110921acedf73c1d14
 
 
 def main():
@@ -209,13 +203,7 @@ def main():
         for idx,j in enumerate(favorites):
             time.sleep(random.randint(1,5))
             try:
-<<<<<<< HEAD
                 res = client_sign(i, tbs, j["id"], j["name"],idx,count)    
-=======
-                res = client_sign(i, tbs, j["id"], j["name"],idx,count)
-                if not res:
-                    break
->>>>>>> d28a06224026ee403ba979110921acedf73c1d14
             except TypeError:
                 logger.error("第"+ str(n+1) + "个用户的BDUSS不正确")
                 send_message("第"+ str(n+1) + "个用户的BDUSS不正确")
