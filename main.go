@@ -18,7 +18,7 @@ import (
 )
 
 type Config struct {
-	BDUSS string `yaml:"BDUSS"`
+	BDUSS []string `yaml:"BDUSS"`
 }
 
 type TBS struct {
@@ -219,22 +219,25 @@ func clientSign(bduss, tbs, fid, kw string, idx, count int) {
 
 func main() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
-	if config.BDUSS == "" {
-		logrus.Info("No BDUSS load, 请检查配置文件")
-		return
+	for idx, bduss := range config.BDUSS {
+		logrus.Info("第", idx, "用户开始签到, 进度(", idx, "/", len(config.BDUSS), ")")
+		if bduss == "" {
+			logrus.Info("No BDUSS load, 请检查配置文件")
+			return
+		}
+		logrus.Info("用户开始签到")
+		tbs := getTbs(bduss)
+		logrus.Info("获取TBS成功")
+		t := getFavorite(bduss)
+		count := len(t)
+		logrus.Info("一共", count, "个吧，开始签到")
+		start := time.Now()
+		for idx, j := range t {
+			wg.Add(1)
+			time.Sleep(time.Second * (time.Duration(rand.Int31()) % 2) / 2)
+			go clientSign(bduss, tbs, j["id"].(string), j["name"].(string), idx, count)
+		}
+		wg.Wait()
+		logrus.Info("签到耗时: ", time.Since(start))
 	}
-	logrus.Info("用户开始签到")
-	tbs := getTbs(config.BDUSS)
-	logrus.Info("获取TBS成功")
-	t := getFavorite(config.BDUSS)
-	count := len(t)
-	logrus.Info("一共", count, "个吧，开始签到")
-	start := time.Now()
-	for idx, j := range t {
-		wg.Add(1)
-		time.Sleep(time.Second * (time.Duration(rand.Int31()) % 2))
-		go clientSign(config.BDUSS, tbs, j["id"].(string), j["name"].(string), idx, count)
-	}
-	wg.Wait()
-	logrus.Info("签到耗时: ", time.Since(start))
 }
