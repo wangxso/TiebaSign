@@ -21,7 +21,3 @@ const (
 	Sign      = "sign"
 	KW        = "kw"
 )
-
-func main() {
-
-}
