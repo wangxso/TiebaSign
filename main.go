@@ -127,7 +127,8 @@ func getFavorite(bduss string) (t []map[string]interface{}) {
 	}
 	res := make([]map[string]interface{}, 0)
 	res = append(res, result)
-	for keys["has_more"] == true && result["has_more"] == "1" {
+
+	for keys["has_more"] && result["has_more"].(string) == "1" {
 		i += 1
 		data["BDUSS"] = bduss
 		data["_client_type"] = "2"
