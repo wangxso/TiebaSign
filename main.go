@@ -162,7 +162,11 @@ func getFavorite(bduss string) (t []map[string]interface{}) {
 	}
 
 	for _, s := range res {
-		forumList := s["forum_list"].(map[string]interface{})
+		forumList, ok := s["forum_list"].(map[string]interface{})
+		if !ok {
+			logrus.Error("get forum list error", err)
+			return
+		}
 		GconForm := forumList["non-gconforum"].([]interface{})
 		for _, m := range GconForm {
 			mList, ok := m.([]interface{})
