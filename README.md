@@ -6,19 +6,20 @@
 ## 1.clone 本项目
 ```bash
 git clone https://github.com/wangxso/TiebaSign
-cd TiebaSign
 go build .
 ```
 
 ## 2.修改配置文件
 ```bash
-mv config.yaml.template config.yaml
+cp config.yaml.template config.yaml
 nano config.yaml
 ```
 - 添加你的BDUSS
-- 如果你需要通知，我这里仅支持了飞书的
 ## 3.添加定时任务
 ```bash
 corntab -e
 0 8 * * * cd ${your_dir}/TiebaSign/ && ./TiebaSign > /dev/null 2>&1
 ```
+
+# Feature
+[] 添加飞书消息通知
