@@ -19,3 +19,6 @@ nano config.yaml
 corntab -e
 0 8 * * * cd ${your_dir}/TiebaSign/ && ./TiebaSign > /dev/null 2>&1
 ```
+
+# Feature
+[] 添加飞书消息通知
