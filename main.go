@@ -220,7 +220,7 @@ func clientSign(bduss, tbs, fid, kw string, idx, count int) {
 func main() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	for idx, bduss := range config.BDUSS {
-		logrus.Info("第", idx, "用户开始签到, 进度(", idx+1, "/", len(config.BDUSS), ")")
+		logrus.Info("第", idx+1, "用户开始签到, 进度(", idx+1, "/", len(config.BDUSS), ")")
 		if bduss == "" {
 			logrus.Info("No BDUSS load, 请检查配置文件")
 			return
