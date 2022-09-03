@@ -21,6 +21,7 @@ import (
 
 type Config struct {
 	BDUSS []string `yaml:"BDUSS"`
+	Lark  string   `yaml:"Lark"`
 }
 
 type TBS struct {
@@ -265,5 +266,6 @@ func main() {
 		}
 		wg.Wait()
 		logrus.Info("签到耗时: ", time.Since(start))
+		session.Post(config.Lark, nic.KV{"msg_type": "text", "content": nic.KV{"text": fmt.Sprintf("签到成功，耗时%d秒", time.Since(start))}})
 	}
 }
