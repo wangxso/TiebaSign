@@ -17,7 +17,7 @@ nano config.yaml
 - 添加你的BDUSS
 ## 3.添加定时任务
 ```bash
-corntab -e
+crontab -e
 0 8 * * * cd ${your_dir}/TiebaSign/ && ./TiebaSign > /dev/null 2>&1
 ```
 
