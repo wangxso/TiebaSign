@@ -18,7 +18,7 @@ nano config.yaml
 ## 3.添加定时任务
 ```bash
 crontab -e
-0 8 * * * cd ${your_dir}/TiebaSign/ && ./TiebaSign > /dev/null 2>&1
+0 8 * * * cd ${your_dir} && ./tiebasign > /dev/null 2>&1
 ```
 
 # Feature
